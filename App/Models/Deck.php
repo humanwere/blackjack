@@ -1,10 +1,10 @@
 <?php
 
-namespace Blackjack\App\Cards;
+namespace App\Models;
 
-class Cards {
+class Deck {
 
-    // for standarts https://en.wikipedia.org/wiki/Standard_52-card_deck
+    // Standards https://en.wikipedia.org/wiki/Standard_52-card_deck
     /** Card types for creating deck  */
     const CardTypes = ['C','D','H','S'];
     /** Card ranks and their values for the game  */
@@ -17,22 +17,31 @@ class Cards {
         '7' => 7,
         '8' => 8,
         '9' => 9,
+        '10' => 10,
         'J' => 10,
         'Q' => 10,
         'K' => 10,
         'A' => 11,
         ];
-    /**
-     * @var array for creating deck
-     */
-    protected $deck = [];
 
-    public function createDeck()
+    /**
+     * Method will create a fresh deck
+     *
+     * @return array
+     */
+    public static function createDeck()
     {
+        $deck = [];
         foreach (self::CardTypes as $type){
-            foreach (self::CardRanks as $rank){
-                $this->deck[$type] = $rank;
+            foreach (self::CardRanks as $name=>$rank){
+                $deck[] = [$type."-".$name => $rank];
             }
         }
+
+        return $deck;
     }
+
+
+
+
 }
