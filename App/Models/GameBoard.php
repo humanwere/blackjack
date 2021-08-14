@@ -6,31 +6,54 @@ class GameBoard
 {
 
     const DeckCount = 6;
-    public $stack;
+    protected $stack;
+    protected $dealerHand;
+    protected $playerHand;
 
-    public function __construct()
+    public function __construct($stack=null)
     {
-        $this->stack = self::createStack();
+        if($this->stack===null & $stack===null){
+            $this->stack = $_SESSION['stack'] = $this->getStack();
+        }else{
+            $this->stack = $stack;
+        }
     }
 
     private static function createStack(){
         $deck = Deck::createDeck();
+
         $stack = [];
         for($i=1;$i<=self::DeckCount;$i++){
             foreach ($deck as $card){
                 $stack[] = $card;
             }
         }
+        shuffle($stack);
         return $stack;
     }
 
     public function pullCard()
     {
-        $key = array_rand($this->stack);
-        $card = $this->stack[$key];
-        unset($this->stack[$key]);
+        $stack = $this->getStack();
 
+        $card = $stack[array_key_first($stack)];
+        unset($stack[array_key_first($stack)]);
+        $this->setStack($stack);
         return $card;
+    }
+
+    public function getStack()
+    {
+        if($this->stack==null){
+           $this->setStack(self::createStack());
+        }
+        return $this->stack;
+    }
+
+    public function setStack($stack)
+    {
+        $this->stack = $stack;
+        $_SESSION['stack'] = $stack;
     }
 
 }
