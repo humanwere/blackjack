@@ -18,21 +18,48 @@ class Controller
     }
     public function indexAction()
     {
-        if (session_status() === PHP_SESSION_NONE) {
+        if (session_status() === PHP_SESSION_ACTIVE) {
             if(!isset($_SESSION["game"])){
                 $_SESSION["game"]=true;
+                $this->board->newRound();
             }
         }
-
-        $card  = $this->board->pullCard();
-        var_dump($card);
+        $_SESSION['userHandTotal'] = GameBoard::calculateTotal($_SESSION['userHand']);
+        $_SESSION['dealerHandTotal'] = GameBoard::calculateTotal($_SESSION['dealerHand']);
     }
 
     public static function logout()
     {
         session_destroy();
         session_unset();
+        unset($_SESSION["game"]);
         header('Location: '.'/');
+    }
+
+    public function hitAction()
+    {
+        if($_SESSION["game"]) {
+            $this->board->pullCard('user');
+            $this->board->checkWinner('hit');
+        }
+        header('Location: '.'/');
+    }
+
+    public function newRound()
+    {
+        if($_SESSION["game"]){
+            $this->board->newRound();
+        }else{
+            header('Location: '.'/');
+        }
+    }
+
+    public function stayAction()
+    {
+        if($_SESSION["game"]) {
+            $this->board->checkWinner('stay');
+        }
+
     }
 
 }
