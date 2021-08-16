@@ -6,12 +6,18 @@ class GameBoard
 {
 
     const DeckCount = 6;
-    const DealerMaXHit = 17;
+    const DealerMaXHit = 17; // If the dealer has a less then this value hand the dealer gets a new card until the hand has 17 or more value
     const BlackJack = 21;
-    protected mixed $stack= null;
+    protected mixed $stack= null; // It will be filled with the number of decks declared in DeckCount
     protected mixed $dealerHand = null;
     protected mixed $userHand = null;
 
+    /**
+     * GameBoard constructor.
+     * If there is no stack, class creates when call
+     *
+     * @param null $stack
+     */
     public function __construct($stack=null)
     {
         if($this->stack===null & $stack===null){
@@ -27,20 +33,38 @@ class GameBoard
         }
     }
 
+    /**
+     * This method starts a new round
+     */
     public function newRound()
     {
+        // Take old cards
         $this->setDealerHand(null);
         $this->setUserHand(null);
+
+        // Set round Session
         $_SESSION['round'] = true;
+
+        // Set Timer
         $_SESSION['time'] = time();
+
+        // Message session unsetting for not show old messages in new round
         unset($_SESSION['message']);
+
         $this->pullCard('dealer');
         $this->pullCard('user');
         $this->pullCard('dealer');
         $this->pullCard('user');
+
+        // Check for player Blackjack
         $this->checkWinner('new');
     }
 
+    /**
+     * This method creates a new Stack
+     *
+     * @return array
+     */
     private function createStack(): array
     {
         $deck = Deck::createDeck();
@@ -55,7 +79,14 @@ class GameBoard
         return $stack;
     }
 
-    public function pullCard($player)
+    /**
+     * Pull a new card from Stack and add the card to player's hand
+     *
+     * Param named player because Dealer is also a player
+     * @param $player
+     * @return mixed
+     */
+    public function pullCard($player): mixed
     {
         $stack = $this->getStack();
 
@@ -72,16 +103,26 @@ class GameBoard
         return $card;
     }
 
-    public static function calculateTotal($hand)
+    /**
+     * This method calculates player's hand total rank
+     *
+     * @param $hand
+     * @return int
+     */
+    public static function calculateTotal($hand): int
     {
         $total = 0;
         $aceCount = 0;
+
+        // Calculate total
         foreach ($hand as $card){
-            if($card['name']=='A'){
+            if($card['name']=='A'){ // if there is an Ace, increase count
                 $aceCount++;
             }
             $total += $card['rank'];
         }
+
+        // If hand has Aces, decrease total by 10 while the total greater than 21
         if($aceCount>0){
             for($i=1;$i<=$aceCount;$i++){
                 if($total>self::BlackJack){
@@ -92,63 +133,91 @@ class GameBoard
         return $total;
     }
 
+    /**
+     * This method checks winner
+     *
+     * @param $status
+     */
     public function checkWinner($status):void
     {
         if($_SESSION['round']){
             $userHandTotal = self::calculateTotal($_SESSION['userHand']);
-            $dealerHandTotal = self::calculateTotal( $_SESSION['dealerHand']);
-            if($status=="new"){
-                if($userHandTotal == self::BlackJack) {
-                    $this->dealerEndGame();
+            if($status=="new" & $userHandTotal == self::BlackJack){ // If it's the beginning of the round, check the user have blackjack
+
+                $this->dealerRoundEndProcess();
+                $dealerHandTotal = self::calculateTotal( $_SESSION['dealerHand']);
+                $this->whoWins($dealerHandTotal, $userHandTotal,true);
+
+            }elseif ($status=="hit"){ // If player hitted, check the user have blackjack or over 21
+
+                if($userHandTotal > self::BlackJack) {
+
+                    self::finishRound('dealer','Player busts! <b>Dealer Wins!</b>',false);
+
+                }elseif($userHandTotal == self::BlackJack){
+
+                    $this->dealerRoundEndProcess(); // dealer pull cards while it hand less than 17
                     $dealerHandTotal = self::calculateTotal( $_SESSION['dealerHand']);
                     $this->whoWins($dealerHandTotal, $userHandTotal,true);
+
                 }
-            }elseif ($status=="hit"){
-                $total = self::calculateTotal($_SESSION['userHand']);
-                if($total > self::BlackJack) {
-                    self::finishGame('dealer','Player busts! <b>Dealer Wins!</b>',false);
-                }elseif($total == self::BlackJack){
-                    $this->dealerEndGame();
-                    $dealerHandTotal = self::calculateTotal( $_SESSION['dealerHand']);
-                    $this->whoWins($dealerHandTotal, $userHandTotal,true);
-                }
-            }elseif($status=="stay"){
-                $this->dealerEndGame();
+            }elseif($status=="stay"){ // If player stays
+
+                $this->dealerRoundEndProcess(); // dealer pull cards while it hand less than 17
                 $dealerHandTotal = self::calculateTotal( $_SESSION['dealerHand']);
                 $this->whoWins($dealerHandTotal, $userHandTotal);
+
             }
         }
     }
 
-    public function whoWins($dealer,$user,$blackJack = false)
+    /**
+     * This method checks win conditions
+     *
+     * @param $dealer
+     * @param $user
+     * @param false $blackJack
+     */
+    private function whoWins($dealer,$user,$blackJack = false)
     {
         if($dealer>self::BlackJack){
-            self::finishGame('user','Dealer Busts!! <b>Player Wins!</b>',$blackJack);
+            self::finishRound('user','Dealer Busts!! <b>Player Wins!</b>',$blackJack);
         }elseif($user>self::BlackJack){
-            self::finishGame('dealer','Player Busts!! <b>Dealer Wins!</b>',false);
+            self::finishRound('dealer','Player Busts!! <b>Dealer Wins!</b>',false);
         }elseif($dealer>$user){
-            self::finishGame('dealer','<b>Dealer Wins!</b>',false);
+            self::finishRound('dealer','<b>Dealer Wins!</b>',false);
         }elseif($dealer<$user){
-            self::finishGame('user','<b>Player Wins!</b>',$blackJack);
+            self::finishRound('user','<b>Player Wins!</b>',$blackJack);
         }elseif ($dealer==$user){
-            self::finishGame('draw','<b>Draw!</b>',false);
+            self::finishRound('draw','<b>Draw!</b>',false);
         }
 
     }
 
-    public function dealerEndGame()
+    /**
+     * This method is called when Round end conditions is met
+     *
+     */
+    public function dealerRoundEndProcess()
     {
         $dealerHandTotal = self::calculateTotal($_SESSION['dealerHand']);
-        while($dealerHandTotal<self::DealerMaXHit){
+        while($dealerHandTotal<self::DealerMaXHit){// Pull card while dealer hand less than 17
             $this->pullCard('dealer');
             $dealerHandTotal = self::calculateTotal($_SESSION['dealerHand']);
         }
     }
 
-    public static function finishGame($winner,$message,$blackJack)
+    /**
+     * This method returns Winner and alert message, also adds count to winner's stats
+     *
+     * @param $winner
+     * @param $message
+     * @param $blackJack
+     */
+    public static function finishRound($winner, $message, $blackJack)
     {
         $_SESSION['message'] = $blackJack ? 'Winner Winner, Chicken Dinner! '. $message : $message;
-        $_SESSION['message'] .= ' <br />Round Time : '.time() - $_SESSION['time'];
+        $_SESSION['message'] .= ' <br />Round Time : '.time() - $_SESSION['time'].' seconds';
         $_SESSION['round'] = false;
         if($winner=='user'){
             $_SESSION['userWinCount'] +=1;

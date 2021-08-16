@@ -118,7 +118,7 @@ $userTotal = \App\Models\GameBoard::calculateTotal($userHand);
                             }
                             ?>
                         </div>
-                        <h3>Total : <?=$total ?></h3>
+                        <h3>Total : <?= $_SESSION['round'] ? $total : \App\Models\GameBoard::calculateTotal($dealerHand)  ?></h3>
                     </div>
                     <!-- END::DEALER -->
 
