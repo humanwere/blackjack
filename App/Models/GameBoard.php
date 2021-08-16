@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Deck;
+
+
 class GameBoard
 {
 
-    const DeckCount = 6;
     const DealerMaXHit = 17; // If the dealer has a less then this value hand the dealer gets a new card until the hand has 17 or more value
     const BlackJack = 21;
-    protected $playerName;
-    protected $delay;
+    protected mixed $playerName;
+    protected mixed $delay;
     protected mixed $stack= null; // It will be filled with the number of decks declared in DeckCount
     protected mixed $dealerHand = null;
     protected mixed $userHand = null;
@@ -27,11 +29,13 @@ class GameBoard
 
     public function newGame()
     {
-        $this->stack = $_SESSION['stack'] = $this->getStack();
+        $deck = new Deck();
+        $this->stack = $_SESSION['stack'] = $deck->getStack();
         $this->setDealerHand(null);
         $this->setUserHand(null);
         $_SESSION['userWinCount'] = 0;
         $_SESSION['dealerWinCount'] = 0;
+        $this->newRound();
     }
 
     /**
@@ -61,24 +65,6 @@ class GameBoard
         $this->checkWinner('new');
     }
 
-    /**
-     * This method creates a new Stack
-     *
-     * @return array
-     */
-    private function createStack(): array
-    {
-        $deck = Deck::createDeck();
-
-        $stack = [];
-        for($i=1;$i<=self::DeckCount;$i++){
-            foreach ($deck as $card){
-                $stack[] = $card;
-            }
-        }
-        shuffle($stack);
-        return $stack;
-    }
 
     /**
      * Pull a new card from Stack and add the card to player's hand
@@ -89,8 +75,7 @@ class GameBoard
      */
     public function pullCard($player): mixed
     {
-        $stack = $this->getStack();
-
+        $stack = $_SESSION['stack'];
         $card = $stack[array_key_first($stack)];
         unset($stack[array_key_first($stack)]);
         if($player=='user'){
@@ -100,7 +85,7 @@ class GameBoard
             $_SESSION['dealerHand'][] = $card;
             $this->setDealerHand($_SESSION['dealerHand']);
         }
-        $this->setStack($stack);
+        $_SESSION['stack'] = $stack;
         return $card;
     }
 
@@ -117,10 +102,10 @@ class GameBoard
 
         // Calculate total
         foreach ($hand as $card){
-            if($card['name']=='A'){ // if there is an Ace, increase count
+            if($card->getName()=='A'){ // if there is an Ace, increase count
                 $aceCount++;
             }
-            $total += $card['rank'];
+            $total += $card->getRank();
         }
 
         // If hand has Aces, decrease total by 10 while the total greater than 21
@@ -231,33 +216,12 @@ class GameBoard
             $_SESSION['dealerWinCount'] +=1;
         }
     }
-    
+
     /**
      * ##########################
      * #### GETTERS & SETTERS ###
      * ##########################
      */
-
-    /**
-     * @return mixed
-     */
-    public function getStack(): mixed
-    {
-        if($this->stack==null){
-           $this->setStack($this->createStack());
-        }
-        return $this->stack;
-    }
-
-    /**
-     * @param $stack
-     * @return void
-     */
-    public function setStack($stack)
-    {
-        $this->stack = $stack;
-        $_SESSION['stack'] = $stack;
-    }
 
     /**
      * @return mixed

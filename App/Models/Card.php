@@ -3,37 +3,69 @@
 
 namespace App\Models;
 
+use App\Interfaces\Card as ICard;
 
-class Card implements \App\Interfaces\Card
+class Card implements ICard
 {
+    private  $type;
+    private $name;
+    private $rank;
 
-    public function setType($type)
+    public function __construct($type,$name,$rank)
     {
-        // TODO: Implement setType() method.
+        $this->setType($type);
+        $this->setName($name);
+        $this->setRank($rank);
     }
 
+    /**
+     * @return mixed
+     */
     public function getType()
     {
-        // TODO: Implement getType() method.
+        return $this->type;
     }
 
-    public function setName($name)
+    /**
+     * @param mixed $type
+     */
+    public function setType($type): void
     {
-        // TODO: Implement setName() method.
+        $this->type = $type;
     }
 
+    /**
+     * @return mixed
+     */
     public function getName()
     {
-        // TODO: Implement getName() method.
+        return $this->name;
     }
 
-    public function setRank($rank)
+    /**
+     * @param mixed $name
+     */
+    public function setName($name): void
     {
-        // TODO: Implement setRank() method.
+        $this->name = $name;
     }
 
+    /**
+     * @return mixed
+     */
     public function getRank()
     {
-        // TODO: Implement getRank() method.
+        return $this->rank;
     }
+
+    /**
+     * @param mixed $rank
+     */
+    public function setRank($rank): void
+    {
+        $this->rank = $rank;
+    }
+
+
+
 }
