@@ -1,11 +1,34 @@
 <div class="container">
     <div class="container-fluid py-5 row">
         <div class="col-md-9">
-            <!-- BEGIN::DEALER -->
+
             <?php
             if(isset($_SESSION['message'])){
             ?>
-                <div class="alert alert-primary" role="alert"><?=$_SESSION['message']?>. New round starts in:  <span id="countdown">10</span></div>
+                <div class="alert alert-primary" role="alert"><h2><?=$_SESSION['message']?>.</h2><br> New round starts in:  <span id="countdown">10</span>
+                    <h2>Winner Hand :</h2>
+                    <div class="row text-dark text-center">
+                        <?php
+                        unset($card);
+                        $winnerHand = $_SESSION['winnerHand'];
+                        foreach ($winnerHand as $card){
+                            ?>
+                            <div class="col-3 p-2">
+                                <div class="card p-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" fill="<?=$cardDesign[$card->getType()]['color'] ?>" class="card-img" viewBox="0 0 16 16">
+                                        <path d="<?=$cardDesign[$card->getType()]['path'] ?>"/>
+                                    </svg>
+                                    <div class="card-body">
+                                        <h6 class="card-title"><?=$card->getName() ?></h6>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php
+                        }
+                        ?>
+                    </div>
+                </div>
+
                 <script type="text/javascript">
 
                     // Total seconds to wait
@@ -31,7 +54,8 @@
             <?php
             }
             ?>
-            <div class="p-5 text-white bg-success rounded-3">
+            <!-- BEGIN::DEALER -->
+            <div class="p-5 text-white bg-success rounded-3 ">
                 <h2>Dealer Hand :</h2>
                 <div class="row text-dark text-center">
                     <?php
@@ -109,8 +133,8 @@
 
             </div>
             <!-- END::USER -->
-
         </div>
+
         <div class="col-md-3">
             <div class="card">
                 <div class="card-body">
