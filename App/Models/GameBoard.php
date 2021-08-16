@@ -8,29 +8,30 @@ class GameBoard
     const DeckCount = 6;
     const DealerMaXHit = 17; // If the dealer has a less then this value hand the dealer gets a new card until the hand has 17 or more value
     const BlackJack = 21;
+    protected $playerName;
+    protected $delay;
     protected mixed $stack= null; // It will be filled with the number of decks declared in DeckCount
     protected mixed $dealerHand = null;
     protected mixed $userHand = null;
 
     /**
      * GameBoard constructor.
-     * If there is no stack, class creates when call
      *
-     * @param null $stack
+     *
      */
-    public function __construct($stack=null)
+    public function __construct($name,$delay)
     {
-        if($this->stack===null & $stack===null){
-            $this->stack = $_SESSION['stack'] = $this->getStack();
-            $this->setDealerHand(null);
-            $this->setUserHand(null);
-            $_SESSION['userHand'] = $this->getUserHand();
-            $_SESSION['dealerHand'] = $this->getDealerHand();
-            $_SESSION['userWinCount'] = 0;
-            $_SESSION['dealerWinCount'] = 0;
-        }else{
-            $this->stack = $stack;
-        }
+        $this->playerName = $name;
+        $this->delay = $delay;
+    }
+
+    public function newGame()
+    {
+        $this->stack = $_SESSION['stack'] = $this->getStack();
+        $this->setDealerHand(null);
+        $this->setUserHand(null);
+        $_SESSION['userWinCount'] = 0;
+        $_SESSION['dealerWinCount'] = 0;
     }
 
     /**
@@ -180,15 +181,20 @@ class GameBoard
      */
     private function whoWins($dealer,$user,$blackJack = false)
     {
-        if($dealer>self::BlackJack){
+        if($dealer > self::BlackJack){
+
             self::finishRound('user','Dealer Busts!! <b>Player Wins!</b>',$blackJack);
-        }elseif($user>self::BlackJack){
+        }elseif($user > self::BlackJack){
+
             self::finishRound('dealer','Player Busts!! <b>Dealer Wins!</b>',false);
-        }elseif($dealer>$user){
+        }elseif($dealer > $user){
+
             self::finishRound('dealer','<b>Dealer Wins!</b>',false);
-        }elseif($dealer<$user){
+        }elseif($dealer < $user){
+
             self::finishRound('user','<b>Player Wins!</b>',$blackJack);
-        }elseif ($dealer==$user){
+        }elseif ($dealer == $user){
+
             self::finishRound('draw','<b>Draw!</b>',false);
         }
 
@@ -286,5 +292,38 @@ class GameBoard
         $this->userHand = $userHand;
         $_SESSION['userHand'] = $this->getUserHand();
     }
-    
+
+    /**
+     * @return mixed
+     */
+    public function getPlayerName(): mixed
+    {
+        return $this->playerName;
+    }
+
+    /**
+     * @param $playerName
+     */
+    public function setPlayerName($playerName): void
+    {
+        $this->playerName = $playerName;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDelay(): mixed
+    {
+        return $this->delay;
+    }
+
+    /**
+     * @param $delay
+     */
+    public function setDelay($delay): void
+    {
+        $this->delay = $delay;
+    }
+
+
 }

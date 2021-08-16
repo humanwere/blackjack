@@ -14,14 +14,15 @@ class Controller
     public function __construct()
     {
         $this->stack = isset($_SESSION['stack']) && count($_SESSION['stack'])>0 ? $_SESSION['stack'] :  null;
-        $this->board = new GameBoard($this->stack);
+
     }
     public function indexAction()
     {
         if (session_status() === PHP_SESSION_ACTIVE) {
             if(!isset($_SESSION["game"])){
+                $this->board = new GameBoard('Player',5);
                 $_SESSION["game"]=true;
-                $this->board->newRound();
+                $this->board->newGame();
             }
         }
         $_SESSION['userHandTotal'] = GameBoard::calculateTotal($_SESSION['userHand']);
