@@ -7,7 +7,7 @@ use App\Interfaces\Card as ICard;
 
 class Card implements ICard
 {
-    private  $type;
+    private $type;
     private $name;
     private $rank;
 
@@ -65,7 +65,5 @@ class Card implements ICard
     {
         $this->rank = $rank;
     }
-
-
 
 }

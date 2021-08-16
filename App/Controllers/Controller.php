@@ -8,8 +8,8 @@ use App\Models\GameBoard;
 
 class Controller
 {
-    public $stack;
-    public $board;
+    public mixed $stack;
+    public GameBoard $board;
 
     public function __construct()
     {
@@ -19,9 +19,8 @@ class Controller
         }
 
     }
-    public function indexAction()
-    {
-        if(isset($_SESSION["game"])) {
+    public function indexAction() {
+        if (isset($_SESSION["game"])) {
             $_SESSION['userHandTotal'] = GameBoard::calculateTotal($_SESSION['userHand']);
             $_SESSION['dealerHandTotal'] = GameBoard::calculateTotal($_SESSION['dealerHand']);
         }
@@ -59,9 +58,8 @@ class Controller
     {
         if($_SESSION["game"]){
             $this->board->newRound();
-        }else{
-            header('Location: '.'/');
         }
+        header('Location: '.'/');
     }
 
     public function stayAction()
