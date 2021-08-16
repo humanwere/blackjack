@@ -2,35 +2,40 @@
 
 namespace App\Models;
 
+use App\Models\Deck;
+
+
 class GameBoard
 {
 
-    const DeckCount = 6;
     const DealerMaXHit = 17; // If the dealer has a less then this value hand the dealer gets a new card until the hand has 17 or more value
     const BlackJack = 21;
+    protected mixed $playerName;
+    protected mixed $delay;
     protected mixed $stack= null; // It will be filled with the number of decks declared in DeckCount
     protected mixed $dealerHand = null;
     protected mixed $userHand = null;
 
     /**
      * GameBoard constructor.
-     * If there is no stack, class creates when call
      *
-     * @param null $stack
+     *
      */
-    public function __construct($stack=null)
+    public function __construct($name,$delay)
     {
-        if($this->stack===null & $stack===null){
-            $this->stack = $_SESSION['stack'] = $this->getStack();
-            $this->setDealerHand(null);
-            $this->setUserHand(null);
-            $_SESSION['userHand'] = $this->getUserHand();
-            $_SESSION['dealerHand'] = $this->getDealerHand();
-            $_SESSION['userWinCount'] = 0;
-            $_SESSION['dealerWinCount'] = 0;
-        }else{
-            $this->stack = $stack;
-        }
+        $this->playerName = $name;
+        $this->delay = $delay;
+    }
+
+    public function newGame()
+    {
+        $deck = new Deck();
+        $this->stack = $_SESSION['stack'] = $deck->getStack();
+        $this->setDealerHand(null);
+        $this->setUserHand(null);
+        $_SESSION['userWinCount'] = 0;
+        $_SESSION['dealerWinCount'] = 0;
+        $this->newRound();
     }
 
     /**
@@ -60,24 +65,6 @@ class GameBoard
         $this->checkWinner('new');
     }
 
-    /**
-     * This method creates a new Stack
-     *
-     * @return array
-     */
-    private function createStack(): array
-    {
-        $deck = Deck::createDeck();
-
-        $stack = [];
-        for($i=1;$i<=self::DeckCount;$i++){
-            foreach ($deck as $card){
-                $stack[] = $card;
-            }
-        }
-        shuffle($stack);
-        return $stack;
-    }
 
     /**
      * Pull a new card from Stack and add the card to player's hand
@@ -88,8 +75,7 @@ class GameBoard
      */
     public function pullCard($player): mixed
     {
-        $stack = $this->getStack();
-
+        $stack = $_SESSION['stack'];
         $card = $stack[array_key_first($stack)];
         unset($stack[array_key_first($stack)]);
         if($player=='user'){
@@ -99,7 +85,7 @@ class GameBoard
             $_SESSION['dealerHand'][] = $card;
             $this->setDealerHand($_SESSION['dealerHand']);
         }
-        $this->setStack($stack);
+        $_SESSION['stack'] = $stack;
         return $card;
     }
 
@@ -116,10 +102,10 @@ class GameBoard
 
         // Calculate total
         foreach ($hand as $card){
-            if($card['name']=='A'){ // if there is an Ace, increase count
+            if($card->getName()=='A'){ // if there is an Ace, increase count
                 $aceCount++;
             }
-            $total += $card['rank'];
+            $total += $card->getRank();
         }
 
         // If hand has Aces, decrease total by 10 while the total greater than 21
@@ -180,15 +166,20 @@ class GameBoard
      */
     private function whoWins($dealer,$user,$blackJack = false)
     {
-        if($dealer>self::BlackJack){
+        if($dealer > self::BlackJack){
+
             self::finishRound('user','Dealer Busts!! <b>Player Wins!</b>',$blackJack);
-        }elseif($user>self::BlackJack){
+        }elseif($user > self::BlackJack){
+
             self::finishRound('dealer','Player Busts!! <b>Dealer Wins!</b>',false);
-        }elseif($dealer>$user){
+        }elseif($dealer > $user){
+
             self::finishRound('dealer','<b>Dealer Wins!</b>',false);
-        }elseif($dealer<$user){
+        }elseif($dealer < $user){
+
             self::finishRound('user','<b>Player Wins!</b>',$blackJack);
-        }elseif ($dealer==$user){
+        }elseif ($dealer == $user){
+
             self::finishRound('draw','<b>Draw!</b>',false);
         }
 
@@ -225,33 +216,12 @@ class GameBoard
             $_SESSION['dealerWinCount'] +=1;
         }
     }
-    
+
     /**
      * ##########################
      * #### GETTERS & SETTERS ###
      * ##########################
      */
-
-    /**
-     * @return mixed
-     */
-    public function getStack(): mixed
-    {
-        if($this->stack==null){
-           $this->setStack($this->createStack());
-        }
-        return $this->stack;
-    }
-
-    /**
-     * @param $stack
-     * @return void
-     */
-    public function setStack($stack)
-    {
-        $this->stack = $stack;
-        $_SESSION['stack'] = $stack;
-    }
 
     /**
      * @return mixed
@@ -286,5 +256,38 @@ class GameBoard
         $this->userHand = $userHand;
         $_SESSION['userHand'] = $this->getUserHand();
     }
-    
+
+    /**
+     * @return mixed
+     */
+    public function getPlayerName(): mixed
+    {
+        return $this->playerName;
+    }
+
+    /**
+     * @param $playerName
+     */
+    public function setPlayerName($playerName): void
+    {
+        $this->playerName = $playerName;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDelay(): mixed
+    {
+        return $this->delay;
+    }
+
+    /**
+     * @param $delay
+     */
+    public function setDelay($delay): void
+    {
+        $this->delay = $delay;
+    }
+
+
 }
