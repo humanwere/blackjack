@@ -16,7 +16,7 @@ services:
     image: nginx:alpine
     container_name: blackjack-nginx
     ports:
-      - 8084:80
+      - 80:80
     volumes:
       - ./:/var/www/php
       - ./docker/config/nginx/:/etc/nginx/conf.d/
