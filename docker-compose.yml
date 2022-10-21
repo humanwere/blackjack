@@ -1,0 +1,27 @@
+version: '3.1'
+
+services:
+  blackjack: #php-fpm7.4
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    privileged: true
+    volumes:
+      - ./:/var/www/php:Z
+    working_dir: /var/www/php
+    networks:
+      - app-network
+  nginx: # Nginx service
+    image: nginx:alpine
+    container_name: blackjack-nginx
+    ports:
+      - 8084:80
+    volumes:
+      - ./:/var/www/php
+      - ./docker/config/nginx/:/etc/nginx/conf.d/
+    networks:
+      - app-network
+networks:
+  app-network:
+    driver: bridge
